@@ -50,6 +50,8 @@ export interface Ticket {
   merchantId: number
   type: number
   status: number
+  /** 是否草稿；申请页据此回填 */
+  draft?: boolean
   skuId: number
   skuName?: string
   exchangeSkuId?: number | null

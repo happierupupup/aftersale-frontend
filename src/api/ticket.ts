@@ -1,5 +1,6 @@
 import { getData, postData } from './http'
-import type { LogisticsInfo, PageResult, RefundDetail, Ticket } from '@/types/api'
+import http from './http'
+import type { LogisticsInfo, PageResult, R, RefundDetail, Ticket } from '@/types/api'
 
 export function pageTickets(params: Record<string, unknown>) {
   return getData<PageResult<Ticket>>('/aftersale/page', params)
@@ -18,6 +19,32 @@ export function applyTicket(body: {
   exchangeSkuId?: number
 }) {
   return postData<Ticket>('/aftersale/apply', body)
+}
+
+/** 保存草稿（同订单+SKU upsert） */
+export function saveDraft(body: {
+  orderNo: string
+  skuId: number
+  type?: number
+  num?: number
+  reason?: string
+  exchangeSkuId?: number
+}) {
+  return postData<Ticket>('/aftersale/draft', body)
+}
+
+/** 按订单+SKU 加载当前用户草稿；无则 null */
+export function getDraft(orderNo: string, skuId: number) {
+  return getData<Ticket | null>('/aftersale/draft', { orderNo, skuId })
+}
+
+export function listMyDrafts() {
+  return getData<Ticket[]>('/aftersale/draft/mine')
+}
+
+export async function deleteDraft(aftersaleNo: string) {
+  const { data } = await http.delete<R<void>>(`/aftersale/draft/${aftersaleNo}`)
+  if (data.code !== 0) throw data
 }
 
 export function approveTicket(aftersaleNo: string, remark?: string) {

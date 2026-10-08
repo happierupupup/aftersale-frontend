@@ -1,4 +1,5 @@
 export const TICKET_STATUS: Record<number, string> = {
+  [-1]: '草稿',
   0: '待审核',
   1: '待仓库发货',
   2: '待用户收货',
@@ -15,6 +16,7 @@ export const TICKET_TYPE: Record<number, string> = {
 }
 
 export const STATUS_TAG: Record<number, '' | 'success' | 'warning' | 'info' | 'danger'> = {
+  [-1]: 'info',
   0: 'warning',
   1: '',
   2: '',
