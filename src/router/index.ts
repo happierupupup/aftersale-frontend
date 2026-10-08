@@ -60,8 +60,12 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const user = useUserStore()
+  // Access 仅内存：刷新页后先用 Refresh Cookie 静默续期
+  if (!to.meta.public) {
+    await user.bootstrap()
+  }
   if (!to.meta.public && !user.isLogin) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { R } from '@/types/api'
 import { useUserStore } from '@/stores/user'
@@ -7,6 +7,7 @@ import router from '@/router'
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || '',
   timeout: 20000,
+  withCredentials: true,
 })
 
 http.interceptors.request.use((config) => {
@@ -17,24 +18,73 @@ http.interceptors.request.use((config) => {
   return config
 })
 
+type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean }
+
+let refreshQueue: Promise<boolean> | null = null
+
+async function refreshOnce(): Promise<boolean> {
+  if (!refreshQueue) {
+    refreshQueue = useUserStore()
+      .tryRefresh()
+      .finally(() => {
+        refreshQueue = null
+      })
+  }
+  return refreshQueue
+}
+
+function shouldTryRefresh(url?: string) {
+  if (!url) return true
+  return !url.includes('/api/auth/login') && !url.includes('/api/auth/refresh')
+}
+
 http.interceptors.response.use(
-  (resp) => {
+  async (resp) => {
     const body = resp.data as R
+    const cfg = resp.config as RetryConfig
     if (body && typeof body.code === 'number' && body.code !== 0) {
+      if (
+        (body.code === 401 || body.code === 1001) &&
+        !cfg._retry &&
+        shouldTryRefresh(cfg.url)
+      ) {
+        cfg._retry = true
+        const ok = await refreshOnce()
+        if (ok) {
+          return http.request(cfg)
+        }
+        ElMessage.error(body.msg || '登录已失效，请重新登录')
+        useUserStore().clear()
+        router.push({ name: 'login' })
+        return Promise.reject(body)
+      }
       ElMessage.error(body.msg || '请求失败')
       if (body.code === 401 || body.code === 1001) {
-        useUserStore().logout()
+        useUserStore().clear()
         router.push({ name: 'login' })
       }
       return Promise.reject(body)
     }
     return resp
   },
-  (err) => {
+  async (err: AxiosError<R>) => {
+    const cfg = err.config as RetryConfig | undefined
+    const status = err.response?.status
+    const bizCode = err.response?.data?.code
+    const unauthorized = status === 401 || bizCode === 401 || bizCode === 1001
+    if (unauthorized && cfg && !cfg._retry && shouldTryRefresh(cfg.url)) {
+      cfg._retry = true
+      const ok = await refreshOnce()
+      if (ok) {
+        return http.request(cfg)
+      }
+      useUserStore().clear()
+      router.push({ name: 'login' })
+    }
     const msg = err?.response?.data?.msg || err.message || '网络错误'
     ElMessage.error(msg)
-    if (err?.response?.status === 401) {
-      useUserStore().logout()
+    if (unauthorized) {
+      useUserStore().clear()
       router.push({ name: 'login' })
     }
     return Promise.reject(err)
