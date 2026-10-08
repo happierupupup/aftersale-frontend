@@ -11,15 +11,15 @@ const route = useRoute()
 const loading = ref(false)
 
 const form = reactive({
-  username: '精神状态良好',
+  username: 'user',
   password: '123456',
 })
 
 const demos = [
-  { label: '用户', username: '精神状态良好' },
-  { label: '商家', username: 'AAA代购' },
-  { label: '仓库', username: 'AAA极速发货' },
-  { label: '管理员', username: '00000' },
+  { label: 'USER', username: 'user' },
+  { label: 'MERCHANT', username: 'merchant' },
+  { label: 'WAREHOUSE', username: 'warehouse' },
+  { label: 'ADMIN', username: 'admin' },
 ]
 
 async function onSubmit() {
@@ -28,7 +28,9 @@ async function onSubmit() {
     await user.login(form.username, form.password)
     ElMessage.success('登录成功')
     const redirect = (route.query.redirect as string) || homePath(user.role)
-    router.replace(redirect)
+    await router.replace(redirect)
+  } catch {
+    // 错误提示已由 http 拦截器统一弹出
   } finally {
     loading.value = false
   }
@@ -44,7 +46,7 @@ function fill(username: string) {
   <div class="login-page">
     <div class="panel">
       <h1>售后服务平台</h1>
-      <p class="sub">Vue3 Demo · 对接 gateway :8080</p>
+      <p class="sub">联调 gateway :8080 · 种子账号见下方</p>
       <el-form label-position="top" @submit.prevent="onSubmit">
         <el-form-item label="用户名">
           <el-input v-model="form.username" autocomplete="username" />
@@ -57,7 +59,7 @@ function fill(username: string) {
         </el-button>
       </el-form>
       <div class="demos">
-        <span>演示账号：</span>
+        <span>种子账号：</span>
         <el-button
           v-for="d in demos"
           :key="d.username"

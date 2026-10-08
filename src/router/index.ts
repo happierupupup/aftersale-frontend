@@ -49,12 +49,6 @@ const router = createRouter({
           component: () => import('@/views/StockListView.vue'),
           meta: { title: '库存/SKU', roles: ['MERCHANT', 'WAREHOUSE', 'ADMIN'] },
         },
-        {
-          path: 'notify',
-          name: 'notify',
-          component: () => import('@/views/NotifyListView.vue'),
-          meta: { title: '站内信' },
-        },
       ],
     },
   ],

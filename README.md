@@ -67,13 +67,14 @@ aftersale-frontend/
     ├── utils/
     │   ├── roles.ts        # 按角色裁菜单、首页
     │   └── ticket.ts       # 状态文案 / 终态判断
+    ├── components/
+    │   └── NotifyBell.vue  # 顶栏铃铛 + 未读角标
     └── views/
         ├── LoginView.vue
         ├── WorkbenchView.vue      # 售后左列表右详情
         ├── TicketApplyView.vue    # 保存草稿 + 提交
         ├── OrderListView.vue
         ├── StockListView.vue
-        ├── NotifyListView.vue
         └── UserManageView.vue
 ```
 
@@ -112,10 +113,12 @@ npm run preview   # 预览构建产物
 
 | 角色 | 侧栏菜单 |
 |------|----------|
-| USER | 我的售后、申请售后、我的订单、站内信 |
-| MERCHANT | 待审核、待退款、全部售后、库存、站内信 |
-| WAREHOUSE | 待发货、全部售后、库存、站内信 |
-| ADMIN | 待审核/发货/退款、全部售后、申请、订单、**用户管理**、库存、站内信 |
+| USER | **售后管理**（我的售后、申请售后、我的订单） |
+| MERCHANT | **售后管理**（待审核、待退款、全部）+ **库存管理** |
+| WAREHOUSE | **售后管理**（待发货、全部）+ **库存管理** |
+| ADMIN | **售后管理**（各状态一页 + 全部 + 申请）、订单管理、用户管理、库存管理 |
+
+站内信：顶栏右上角铃铛（红点未读数），不再进侧栏。
 
 申请页：
 
@@ -123,16 +126,16 @@ npm run preview   # 预览构建产物
 - **提交** → `POST /aftersale/apply`（后端先删草稿再新增正式单）
 - 进页按订单+SKU `GET /aftersale/draft` 回填（`draft: true` / `status: -1`）
 
-## 演示账号
+## 种子账号
 
-密码均为 `123456`：
+密码均为 `123456`（用户名仅字母 / 数字 / 下划线）：
 
 | 用户名 | 角色 |
 |--------|------|
-| 精神状态良好 | USER |
-| AAA代购 | MERCHANT |
-| AAA极速发货 | WAREHOUSE |
-| 00000 | ADMIN |
+| user | USER |
+| merchant | MERCHANT |
+| warehouse | WAREHOUSE |
+| admin | ADMIN |
 
 ## 鉴权（双 JWT）
 

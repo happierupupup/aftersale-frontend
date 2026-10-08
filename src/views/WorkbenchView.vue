@@ -35,8 +35,8 @@ const query = reactive({
 
 const keyword = ref('')
 const remark = ref('')
-const shipForm = reactive({ company: '顺丰', trackingNo: '', phone: '' })
-const refundForm = reactive({ amount: undefined as number | undefined, channel: '原路退回', remark: '' })
+const shipForm = reactive({ company: 'SF', trackingNo: '', phone: '' })
+const refundForm = reactive({ amount: undefined as number | undefined, channel: 'ORIGINAL', remark: '' })
 
 const terminal = computed(() => isTerminal(ticket.value?.status))
 const canApprove = computed(() => ticket.value?.status === 0 && ['MERCHANT', 'ADMIN'].includes(user.role))

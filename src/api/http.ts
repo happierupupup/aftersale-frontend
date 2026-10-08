@@ -59,7 +59,11 @@ http.interceptors.response.use(
         return Promise.reject(body)
       }
       ElMessage.error(body.msg || '请求失败')
-      if (body.code === 401 || body.code === 1001) {
+      // 登录接口本身的账号错误不要当成「会话失效」清态跳转
+      if (
+        (body.code === 401 || body.code === 1001) &&
+        shouldTryRefresh(cfg.url)
+      ) {
         useUserStore().clear()
         router.push({ name: 'login' })
       }
@@ -72,7 +76,8 @@ http.interceptors.response.use(
     const status = err.response?.status
     const bizCode = err.response?.data?.code
     const unauthorized = status === 401 || bizCode === 401 || bizCode === 1001
-    if (unauthorized && cfg && !cfg._retry && shouldTryRefresh(cfg.url)) {
+    const canRefresh = shouldTryRefresh(cfg?.url)
+    if (unauthorized && cfg && !cfg._retry && canRefresh) {
       cfg._retry = true
       const ok = await refreshOnce()
       if (ok) {
@@ -83,7 +88,7 @@ http.interceptors.response.use(
     }
     const msg = err?.response?.data?.msg || err.message || '网络错误'
     ElMessage.error(msg)
-    if (unauthorized) {
+    if (unauthorized && canRefresh) {
       useUserStore().clear()
       router.push({ name: 'login' })
     }
